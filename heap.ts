@@ -1,20 +1,20 @@
 type aShouldBeTopperThanB<T> = (a: T, b: T) => boolean;
 
-export class AbstractHeap<T> {
-  heap: T[];
-  aShouldBeTopperThanB: aShouldBeTopperThanB<T>;
-  constructor(aShouldBeTopperThanB: aShouldBeTopperThanB<T>) {
-    this.heap = [];
+export class AbstractHeap<NODE> {
+  heap: NODE[];
+  aShouldBeTopperThanB: aShouldBeTopperThanB<NODE>;
+  constructor(aShouldBeTopperThanB: aShouldBeTopperThanB<NODE>, heap?: NODE[]) {
+    this.heap = heap ?? [];
     this.aShouldBeTopperThanB = aShouldBeTopperThanB;
   }
 
-  add(item: T) {
+  add(item: NODE) {
     this.heap.push(item);
     const newItemIndex = this.heap.length - 1;
     this.processUp(newItemIndex);
   }
 
-  peek(): T | undefined {
+  peek(): NODE | undefined {
     return this.heap[0];
   }
 
@@ -34,7 +34,7 @@ export class AbstractHeap<T> {
   }
 
   // make sure corresponding start item exists before calling!!
-  processUp(startIndex: number) {
+  private processUp(startIndex: number) {
     let currentIndex = startIndex;
     while (true) {
       if (isRoot(currentIndex)) {
@@ -54,7 +54,7 @@ export class AbstractHeap<T> {
   }
 
   // make sure corresponding start item exists before calling!!
-  processDown(startIndex: number) {
+  private processDown(startIndex: number) {
     const currentIndex = startIndex;
     const leftIndex = leftChildIndex(currentIndex);
     const leftChild = this.heap[leftIndex];
@@ -97,23 +97,19 @@ export class NumberSmallHeap extends AbstractHeap<number> {
   }
 }
 
-function leftChildIndex(index: number) {
+export function leftChildIndex(index: number) {
   return index * 2 + 1;
 }
 
-function rightChildIndex(index: number) {
+export function rightChildIndex(index: number) {
   return index * 2 + 2;
 }
 
-function parentIndex(index: number) {
+export function parentIndex(index: number) {
   if (isRoot(index)) {
     return -1;
   }
-  return isEven(index) ? (index - 2) / 2 : (index - 1) / 2;
-
-  function isEven(index: number) {
-    return index % 2 === 0;
-  }
+  return (index - 1) >> 1;
 }
 
 function leftChild<T>(heap: T[], index: number): T | undefined {
@@ -128,7 +124,7 @@ function parent<T>(heap: T[], index: number): T | undefined {
   return heap[parentIndex(index)];
 }
 
-function isRoot(index: number) {
+export function isRoot(index: number) {
   return index === 0;
 }
 
@@ -156,4 +152,10 @@ function levelConsole(heap: unknown[]) {
       break;
     }
   }
+}
+
+export function swap<T>(arr: T[], a: number, b: number) {
+  let tmp = arr[a];
+  arr[a] = arr[b];
+  arr[b] = tmp;
 }
