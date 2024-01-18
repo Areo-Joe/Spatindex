@@ -1,12 +1,5 @@
 // reference: https://github.com/mourner/flatqueue
-import {
-  isRoot,
-  parentIndex,
-  leftChildIndex,
-  rightChildIndex,
-  swap,
-} from "./heap";
-let count = 0;
+import { isRoot } from "./heap";
 export class FlatQueue {
   ids: number[];
   priorities: number[];
@@ -17,10 +10,24 @@ export class FlatQueue {
   }
 
   push(id: number, priority: number) {
-    this.ids.push(id);
-    this.priorities.push(priority);
-    const newItemIndex = this.ids.length - 1;
-    this.processUp(newItemIndex);
+    let index = this.ids.length;
+    while (true) {
+      if (isRoot(index)) {
+        break;
+      }
+      const parentId = (index - 1) >> 1;
+      const parentPri = this.priorities[parentId];
+      if (parentPri < priority) {
+        break;
+      } else {
+        this.ids[index] = this.ids[parentId];
+        this.priorities[index] = this.priorities[parentId];
+
+        index = parentId;
+      }
+    }
+    this.ids[index] = id;
+    this.priorities[index] = priority;
   }
 
   peekValue(): number | undefined {
@@ -43,75 +50,59 @@ export class FlatQueue {
     const lastId = this.ids.pop()!;
 
     const ret = this.ids[0];
+    let currentIndex = 0;
 
-    this.priorities[0] = lastPriority;
-    this.ids[0] = lastId;
-    this.processDown(0);
-
-    return ret;
-  }
-
-  // make sure corresponding start item exists before calling!!
-  private processUp(startIndex: number) {
-    let currentIndex = startIndex;
     while (true) {
-      if (isRoot(currentIndex)) {
-        return;
-      }
-      const parentIdx = parentIndex(currentIndex);
-      const parent = this.priorities[parentIdx];
-      const current = this.priorities[currentIndex];
-      if (this.aShouldBeTopperThanB(parent, current)) {
-        return;
-      } else {
-        this.priorities[parentIdx] = current;
-        this.priorities[currentIndex] = parent;
-        swap(this.ids, currentIndex, parentIdx);
-        currentIndex = parentIdx;
-      }
-    }
-  }
-
-  // make sure corresponding start item exists before calling!!
-  private processDown(startIndex: number) {
-    let toBeProcessed = [startIndex];
-    while (toBeProcessed.length !== 0) {
-      let currentIndex = toBeProcessed.pop()!;
-
-      const leftIndex = leftChildIndex(currentIndex);
+      const leftIndex = (currentIndex << 2) + 1;
       const leftChild = this.priorities[leftIndex];
       if (leftChild == null) {
-        continue;
+        break;
       }
-      let currentItem = this.priorities[currentIndex];
-      if (this.aShouldBeTopperThanB(leftChild, currentItem)) {
-        this.priorities[leftIndex] = currentItem;
-        this.priorities[currentIndex] = leftChild;
-        swap(this.ids, leftIndex, currentIndex);
-        toBeProcessed.push(leftIndex);
-      }
-      const rightIndex = rightChildIndex(currentIndex);
+      const rightIndex = (currentIndex << 2) + 2;
       const rightChild = this.priorities[rightIndex];
+
       if (rightChild == null) {
-        continue;
-      }
-      currentItem = this.priorities[currentIndex];
-      if (this.aShouldBeTopperThanB(rightChild, currentItem)) {
-        this.priorities[rightIndex] = currentItem;
-        this.priorities[currentIndex] = rightChild;
-        swap(this.ids, rightIndex, currentIndex);
-        toBeProcessed.push(rightIndex);
+        if (leftChild < lastPriority) {
+          this.priorities[currentIndex] = this.priorities[leftIndex];
+          this.ids[currentIndex] = this.ids[leftIndex];
+          currentIndex = leftIndex;
+        }
+        break;
+      } else {
+        if (lastPriority < leftChild) {
+          if (lastPriority < rightChild) {
+            break;
+          } else {
+            this.priorities[currentIndex] = this.priorities[rightIndex];
+            this.ids[currentIndex] = this.ids[rightIndex];
+            currentIndex = rightIndex;
+          }
+        } else {
+          if (leftChild < rightChild) {
+            this.priorities[currentIndex] = this.priorities[leftIndex];
+            this.ids[currentIndex] = this.ids[leftIndex];
+            currentIndex = leftIndex;
+          } else {
+            this.priorities[currentIndex] = this.priorities[rightIndex];
+            this.ids[currentIndex] = this.ids[rightIndex];
+            currentIndex = rightIndex;
+          }
+        }
       }
     }
-    ++count && count % 1000 === 0 && console.log("finish", count++);
-  }
 
-  aShouldBeTopperThanB(a: number, b: number) {
-    return a < b;
+    this.priorities[currentIndex] = lastPriority;
+    this.ids[currentIndex] = lastId;
+
+    return ret;
   }
 }
 
 export class FlatQueue2 {
+  ids: number[];
+  values: number[];
+  length: number;
+
   constructor() {
     this.ids = [];
     this.values = [];
@@ -122,7 +113,7 @@ export class FlatQueue2 {
     this.length = 0;
   }
 
-  push(id, value) {
+  push(id: number, value: number) {
     let pos = this.length++;
 
     while (pos > 0) {

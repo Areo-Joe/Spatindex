@@ -55,29 +55,55 @@ export class AbstractHeap<NODE> {
 
   // make sure corresponding start item exists before calling!!
   private processDown(startIndex: number) {
-    const currentIndex = startIndex;
-    const leftIndex = leftChildIndex(currentIndex);
-    const leftChild = this.heap[leftIndex];
-    if (leftChild == null) {
-      return;
+    const toBeProcessed = [startIndex];
+    while (toBeProcessed.length !== 0) {
+      const currentIndex = toBeProcessed.pop()!;
+      const leftIndex = leftChildIndex(currentIndex);
+      const leftChild = this.heap[leftIndex];
+      if (leftChild == null) {
+        continue;
+      }
+      let currentItem = this.heap[currentIndex];
+      if (this.aShouldBeTopperThanB(leftChild, currentItem)) {
+        this.heap[leftIndex] = currentItem;
+        this.heap[currentIndex] = leftChild;
+      }
+      toBeProcessed.push(leftIndex);
+      const rightIndex = rightChildIndex(currentIndex);
+      const rightChild = this.heap[rightIndex];
+      if (rightChild == null) {
+        continue;
+      }
+      currentItem = this.heap[currentIndex];
+      if (this.aShouldBeTopperThanB(rightChild, currentItem)) {
+        this.heap[rightIndex] = currentItem;
+        this.heap[currentIndex] = rightChild;
+      }
+      toBeProcessed.push(rightIndex);
     }
-    let currentItem = this.heap[currentIndex];
-    if (this.aShouldBeTopperThanB(leftChild, currentItem)) {
-      this.heap[leftIndex] = currentItem;
-      this.heap[currentIndex] = leftChild;
-    }
-    this.processDown(leftIndex);
-    const rightIndex = rightChildIndex(currentIndex);
-    const rightChild = this.heap[rightIndex];
-    if (rightChild == null) {
-      return;
-    }
-    currentItem = this.heap[currentIndex];
-    if (this.aShouldBeTopperThanB(rightChild, currentItem)) {
-      this.heap[rightIndex] = currentItem;
-      this.heap[currentIndex] = rightChild;
-    }
-    this.processDown(rightIndex);
+    // const currentIndex = startIndex;
+    // const leftIndex = leftChildIndex(currentIndex);
+    // const leftChild = this.heap[leftIndex];
+    // if (leftChild == null) {
+    //   return;
+    // }
+    // let currentItem = this.heap[currentIndex];
+    // if (this.aShouldBeTopperThanB(leftChild, currentItem)) {
+    //   this.heap[leftIndex] = currentItem;
+    //   this.heap[currentIndex] = leftChild;
+    // }
+    // this.processDown(leftIndex);
+    // const rightIndex = rightChildIndex(currentIndex);
+    // const rightChild = this.heap[rightIndex];
+    // if (rightChild == null) {
+    //   return;
+    // }
+    // currentItem = this.heap[currentIndex];
+    // if (this.aShouldBeTopperThanB(rightChild, currentItem)) {
+    //   this.heap[rightIndex] = currentItem;
+    //   this.heap[currentIndex] = rightChild;
+    // }
+    // this.processDown(rightIndex);
   }
 
   levelConsole() {
